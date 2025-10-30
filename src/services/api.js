@@ -2,41 +2,14 @@ import axios from 'axios'
 
 // 환경 설정
 const isDev = import.meta.env.DEV
-const PYTHON_SERVER = isDev ? '' : 'http://192.168.30.240:5000'
-const BACKEND_SERVER = 'http://192.168.30.152:8080'
+const BACKEND_SERVER = isDev ? '' : 'http://192.168.30.95:8080'
 
 // Axios 인스턴스
-const pythonClient = axios.create({
-  baseURL: PYTHON_SERVER,
-  headers: { 'Content-Type': 'application/json' },
-  timeout: 10000,
-})
-
 const backendClient = axios.create({
   baseURL: BACKEND_SERVER,
   headers: { 'Content-Type': 'application/json' },
   timeout: 10000,
 })
-
-// Python 인터셉터
-pythonClient.interceptors.request.use(
-  (config) => {
-    if (isDev) console.log(`[Python] ${config.method?.toUpperCase()} ${config.url}`)
-    return config
-  },
-  (error) => Promise.reject(error)
-)
-
-pythonClient.interceptors.response.use(
-  (response) => {
-    if (isDev) console.log(`[Python] ${response.status}`)
-    return response
-  },
-  (error) => {
-    if (isDev) console.error('[Python] Error:', error.message)
-    return Promise.reject(error)
-  }
-)
 
 // Backend 인터셉터
 backendClient.interceptors.request.use(
@@ -156,63 +129,56 @@ export const chickenAPI = {
   }
 }
 
-// API: 센서 데이터
+// API: 센서 데이터 (백엔드로 통합)
 export const sensorAPI = {
   getRealtimeData: async () => {
-    const url = isDev ? '/api/realtime' : `${PYTHON_SERVER}/api/realtime`
-    const response = await pythonClient.get(url, { timeout: 10000 })
+    const response = await backendClient.get('/api/realtime', { timeout: 10000 })
     return response.data
   },
 
   getSensorHistory: async (sensorType) => {
-    const url = isDev ? `/api/sensor-history/${sensorType}` : `${PYTHON_SERVER}/api/sensor-history/${sensorType}`
-    const response = await pythonClient.get(url, { timeout: 10000 })
+    const response = await backendClient.get(`/api/sensor-history/${sensorType}`, { timeout: 10000 })
     return response.data
   },
 
   getStatus: async () => {
-    const url = isDev ? '/api/status' : `${PYTHON_SERVER}/api/status`
-    const response = await pythonClient.get(url, { timeout: 10000 })
+    const response = await backendClient.get('/api/status', { timeout: 10000 })
     return response.data
   }
 }
 
-// API: 환경 설정
+// API: 환경 설정 (백엔드로 통합)
 export const envSettingsAPI = {
-  // 설정 조회 (getSettings와 getCurrentSettings 모두 지원)
+  // 설정 조회
   getSettings: async () => {
-    const url = isDev ? '/api/settings/current' : `${PYTHON_SERVER}/api/settings/current`
-    const response = await pythonClient.get(url, { timeout: 10000 })
+    const response = await backendClient.get('/api/settings/current', { timeout: 10000 })
     return response.data
   },
 
   getCurrentSettings: async () => {
-    const url = isDev ? '/api/settings/current' : `${PYTHON_SERVER}/api/settings/current`
-    const response = await pythonClient.get(url, { timeout: 10000 })
+    const response = await backendClient.get('/api/settings/current', { timeout: 10000 })
     return response.data
   },
 
   // 설정 업데이트
   updateSettings: async (settings) => {
-    const url = isDev ? '/api/settings/update' : `${PYTHON_SERVER}/api/settings/update`
-    const response = await pythonClient.post(url, settings, { timeout: 10000 })
+    const response = await backendClient.post('/api/settings/update', settings, { timeout: 10000 })
     return response.data
   },
 
   // 설정 적용
   applySettings: async () => {
-    const url = isDev ? '/api/settings/apply' : `${PYTHON_SERVER}/api/settings/apply`
-    const response = await pythonClient.post(url, {}, { timeout: 10000 })
+    const response = await backendClient.post('/api/settings/apply', {}, { timeout: 10000 })
     return response.data
   },
 
-  // 백엔드 설정 조회
+  // 백엔드 설정 조회 (레거시 지원)
   getSettingsFromBackend: async () => {
     const response = await backendClient.get('/api/env-settings', { timeout: 10000 })
     return response.data
   },
 
-  // 백엔드 설정 저장
+  // 백엔드 설정 저장 (레거시 지원)
   saveSettingsToBackend: async (settings) => {
     const response = await backendClient.post('/api/env-settings', settings, { timeout: 10000 })
     return response.data
