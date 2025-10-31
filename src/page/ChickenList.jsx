@@ -2,8 +2,10 @@ import React, { useEffect, useRef, useState } from 'react'
 import styles from './ChickenList.module.css'
 import { chickenAPI, apiClient } from '../services/api'
 import Button from '../common/Button';
+import { useAlert } from '../context/AlertContext'
 
 const ChickenList = ({batchId, changeReload, reload}) => {
+  const { showCustomAlert, showCustomConfirm } = useAlert();
   //닭 개체 정보 
   const [chickenInfo, setChickenInfo] = useState([]);
 
@@ -107,19 +109,20 @@ const ChickenList = ({batchId, changeReload, reload}) => {
   }
 
   //선택된 개체 폐사 처리
-  const handleDeathProcess = () => {
+  const handleDeathProcess = async () => {
     if (checkedChickenId.length === 0){
-      alert('폐사 처리할 개체를 선택해주세요.');
+      await showCustomAlert('폐사 처리할 개체를 선택해주세요.');
       return ;
     }
 
-    if(!confirm(`선택한 ${checkedChickenId.length}마리를 폐사 처리하시겠습니까?`)){
+    const confirmed = await showCustomConfirm(`선택한 ${checkedChickenId.length}마리를 폐사 처리하시겠습니까?`);
+    if(!confirmed){
       return ;
     }
 
     apiClient.put('/api/chicken/death', {batchId : batchId, chickenIdList : checkedChickenId})
-    .then(res => {
-      alert('폐사 처리 완료');
+    .then(async res => {
+      await showCustomAlert('폐사 처리 완료');
       setCheckedChickenId([]);
       changeReload();
     })
@@ -127,14 +130,15 @@ const ChickenList = ({batchId, changeReload, reload}) => {
   }
 
   //선택된 개체의 건강 상태 수정
-  const handleHealthStatus = () => {
+  const handleHealthStatus = async () => {
     if (checkedChickenId.length === 0){
-      alert('건강 상태를 변경할 개체를 선택해주세요.')
+      await showCustomAlert('건강 상태를 변경할 개체를 선택해주세요.')
+      return;
     }
 
     apiClient.put('/api/chicken/update-health', {chickenIdList : checkedChickenId})
-    .then(res => {
-      alert('건강 상태 변경 완료');
+    .then(async res => {
+      await showCustomAlert('건강 상태 변경 완료');
       setCheckedChickenId([]);
       changeReload();
     })

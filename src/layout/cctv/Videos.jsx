@@ -2,11 +2,13 @@ import React, { useEffect, useState } from "react";
 import styles from "./Videos.module.css";
 import Button from "../../common/Button";
 import Modal from "../../common/Modal";
+import { useAlert } from '../../context/AlertContext';
 
  const API_BASE = "http://192.168.30.71:5000";
 // const API_BASE = "http://192.168.31.229:5000";
 
 const Videos = () => {
+  const { showCustomAlert } = useAlert();
   const [videos, setVideos] = useState([]);
   const [selectedVideo, setSelectedVideo] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -38,15 +40,15 @@ const Videos = () => {
     setIsDeleteModalOpen(true);
   };
 
-  const confirmDelete = () => {
+  const confirmDelete = async () => {
     if (!fileToDelete) return;
     fetch(`${API_BASE}/videos/delete/${fileToDelete}`, { method: "POST" })
       .then((res) => res.json())
-      .then((data) => {
+      .then(async (data) => {
         if (data.status === "success") {
           fetchVideos();
         } else {
-          alert("삭제 실패: " + data.message);
+          await showCustomAlert("삭제 실패: " + data.message);
         }
       })
       .catch(console.error)
@@ -60,20 +62,20 @@ const Videos = () => {
     setIsDbCleanupModalOpen(true);
   };
 
-  const confirmDbCleanup = () => {
+  const confirmDbCleanup = async () => {
     fetch(`${API_BASE}/videos/cleanup_deleted`, { method: "POST" })
       .then((res) => res.json())
-      .then((data) => {
+      .then(async (data) => {
         if (data.status === "success") {
-          // alert(`${data.deleted_count}개의 파일이 DB에서 삭제되었습니다.`);
+          // await showCustomAlert(`${data.deleted_count}개의 파일이 DB에서 삭제되었습니다.`);
           fetchVideos();
         } else {
-          alert("정리 실패: " + data.message);
+          await showCustomAlert("정리 실패: " + data.message);
         }
       })
-      .catch((err) => {
+      .catch(async (err) => {
         console.error(err);
-        alert("정리 중 오류 발생");
+        await showCustomAlert("정리 중 오류 발생");
       })
       .finally(() => {
         setIsDbCleanupModalOpen(false);

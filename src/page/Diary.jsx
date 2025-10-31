@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
 import styles from "./Diary.module.css";
 import { getNotesByDate, insertNote, updateNote, deleteNote } from "../api/noteApi";
+import { useAlert } from '../context/AlertContext';
 
 const Diary = () => {
+  const { showCustomAlert, showCustomConfirm } = useAlert();
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [entries, setEntries] = useState([]);
   const [viewMode, setViewMode] = useState('day'); // 'day', 'week', 'month'
@@ -87,14 +89,14 @@ const Diary = () => {
         const result = await updateNote(noteData);
 
         if (result.success) {
-          alert(result.message);
+          await showCustomAlert(result.message);
           fetchNotesByDateRange(); // 목록 새로고침
           setEditingId(null);
         } else {
-          alert(result.message);
+          await showCustomAlert(result.message);
         }
       } catch (error) {
-        alert('일지 수정에 실패했습니다.');
+        await showCustomAlert('일지 수정에 실패했습니다.');
         console.error(error);
       }
     } else {
@@ -107,13 +109,13 @@ const Diary = () => {
         const result = await insertNote(noteData);
 
         if (result.success) {
-          alert(result.message);
+          await showCustomAlert(result.message);
           fetchNotesByDateRange(); // 목록 새로고침
         } else {
-          alert(result.message);
+          await showCustomAlert(result.message);
         }
       } catch (error) {
-        alert('일지 추가에 실패했습니다.');
+        await showCustomAlert('일지 추가에 실패했습니다.');
         console.error(error);
       }
     }
@@ -132,18 +134,19 @@ const Diary = () => {
   };
 
   const handleDelete = async (noteNum) => {
-    if (window.confirm("이 기록을 삭제하시겠습니까?")) {
+    const confirmed = await showCustomConfirm("이 기록을 삭제하시겠습니까?");
+    if (confirmed) {
       try {
         const result = await deleteNote(noteNum);
 
         if (result.success) {
-          alert(result.message);
+          await showCustomAlert(result.message);
           fetchNotesByDateRange(); // 목록 새로고침
         } else {
-          alert(result.message);
+          await showCustomAlert(result.message);
         }
       } catch (error) {
-        alert('일지 삭제에 실패했습니다.');
+        await showCustomAlert('일지 삭제에 실패했습니다.');
         console.error(error);
       }
     }

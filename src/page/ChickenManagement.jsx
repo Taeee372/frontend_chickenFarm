@@ -4,8 +4,10 @@ import Input from '../common/Input'
 import Button from '../common/Button'
 import ChickenList from './ChickenList'
 import { apiClient } from '../services/api'
+import { useAlert } from '../context/AlertContext'
 
 const ChickenManagement = () => {
+  const { showCustomAlert, showCustomConfirm } = useAlert();
   //양계장 번호 조회
   const [farmNumList, setFarmNumList] = useState([]);
 
@@ -83,24 +85,25 @@ const ChickenManagement = () => {
 
   const handleShipment = async () => {
   if (checkedBatches.length === 0) {
-    alert('출하할 배치를 선택해주세요.');
+    await showCustomAlert('출하할 배치를 선택해주세요.');
     return;
   }
 
-  if(!confirm(`선택한 ${checkedBatches.length}개 배치를 출하 처리하시겠습니까?`)){
+  const confirmed = await showCustomConfirm(`선택한 ${checkedBatches.length}개 배치를 출하 처리하시겠습니까?`);
+  if(!confirmed){
     return ;
   }
 
   apiClient.put('/api/batch/shipment', { batchIdList: checkedBatches })
-    .then(res => {
-      alert('출하가 완료되었습니다.');
+    .then(async res => {
+      await showCustomAlert('출하가 완료되었습니다.');
       setCheckedBatches([]);  // 체크박스 초기화
       setIsAllChecked(false);
       setReload(reload + 1)
     })
-    .catch(e => {
+    .catch(async e => {
       console.log(e);
-      alert('출하 처리 중 오류가 발생했습니다.');
+      await showCustomAlert('출하 처리 중 오류가 발생했습니다.');
     });
 }
 
@@ -127,7 +130,7 @@ const ChickenManagement = () => {
   }, [reload])
 
   //양계장 등록
-  const regFarmName = () => {
+  const regFarmName = async () => {
     if(farmName === ''){
       setErrorMsg({
         ...errorMsg,
@@ -136,8 +139,8 @@ const ChickenManagement = () => {
       return ;
     }
     apiClient.post(`/api/farm`, {farmName : farmName})
-    .then(res => {
-      alert('양계장 등록이 완료되었습니다.');
+    .then(async res => {
+      await showCustomAlert('양계장 등록이 완료되었습니다.');
       setFarmName('');
       changeReload();
     })
@@ -147,7 +150,7 @@ const ChickenManagement = () => {
   }
 
   //배치 & 개체 동시 등록
-  const regBatchAndChickens = () => {
+  const regBatchAndChickens = async () => {
     const newErrors = {
       farmNumError: batch.farmNum === '' ? '양계장을 선택해주세요.' : '',
       entryDateError: batch.entryDate === '' ? '입식일을 선택해주세요.' : '',
@@ -166,8 +169,8 @@ const ChickenManagement = () => {
     }
 
     apiClient.post('/api/batch', batch)
-    .then(res => {
-      alert('배치 등록이 완료되었습니다.');
+    .then(async res => {
+      await showCustomAlert('배치 등록이 완료되었습니다.');
       setBatch({
         'farmNum' : '',
         'entryDate' : '',

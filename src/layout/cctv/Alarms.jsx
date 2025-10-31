@@ -4,6 +4,7 @@ import Button from "../../common/Button";
 import PageTitle from "../../common/cctv/PageTitle";
 import Modal from "../../common/Modal";
 import styles from "./Alarms.module.css";
+import { useAlert } from '../../context/AlertContext';
 
  const API_BASE = "http://192.168.30.71:5000";
 // const API_BASE = "http://192.168.31.229:5000";
@@ -33,6 +34,7 @@ const norm = (s) => (s || "").toString().trim().toLowerCase();
    알람 리스트
 ======================= */
 const AlarmList = () => {
+  const { showCustomAlert, showCustomConfirm } = useAlert();
   const [alarms, setAlarms] = useState([]);
   const [dangerousObjects, setDangerousObjects] = useState([]);
 
@@ -66,7 +68,7 @@ const AlarmList = () => {
       await fetchAlarms();
     } catch (e) {
       console.error("알람 삭제 실패:", e);
-      alert("알람 삭제 실패");
+      await showCustomAlert("알람 삭제 실패");
     }
   };
 
@@ -145,7 +147,7 @@ const DangerousObjects = () => {
       window.dispatchEvent(new CustomEvent("dangerous-objects-updated"));
     } catch (err) {
       console.error("위험 상태 변경 실패:", err);
-      alert("위험 상태 변경 실패");
+      await showCustomAlert("위험 상태 변경 실패");
     }
   };
 
@@ -210,7 +212,8 @@ const ObjectManagement = () => {
 
   const onDelete = async () => {
     if (!selected) return;
-    if (!window.confirm("정말 삭제하시겠습니까?")) return;
+    const confirmed = await showCustomConfirm("정말 삭제하시겠습니까?");
+    if (!confirmed) return;
     try {
       const id = selected.ITEM_ID;
       const res = await axios.delete(`${API_BASE}/objects/${id}`, noCache());
@@ -220,11 +223,11 @@ const ObjectManagement = () => {
         await fetchObjects();
         window.dispatchEvent(new CustomEvent("dangerous-objects-updated"));
       } else {
-        alert(res.data.message || "삭제 실패");
+        await showCustomAlert(res.data.message || "삭제 실패");
       }
     } catch (e) {
       console.error("삭제 실패:", e);
-      alert("삭제 실패");
+      await showCustomAlert("삭제 실패");
     }
   };
 
@@ -252,11 +255,11 @@ const onSave = async () => {
       await fetchObjects();
       window.dispatchEvent(new CustomEvent("dangerous-objects-updated"));
     } else {
-      alert(res.data.message || "수정 실패");
+      await showCustomAlert(res.data.message || "수정 실패");
     }
   } catch (e) {
     console.error("수정 실패:", e);
-    alert("수정 실패");
+    await showCustomAlert("수정 실패");
   }
 };
 
@@ -265,7 +268,7 @@ const onSave = async () => {
     const code = addForm.code.trim();
     const name = addForm.name.trim();
     if (!code || !name) {
-      alert("OBJECT_CODE / OBJECT_NAME_KR을 입력하세요.");
+      await showCustomAlert("OBJECT_CODE / OBJECT_NAME_KR을 입력하세요.");
       return;
     }
     const flags = statusToFlags(addForm.status);
@@ -281,11 +284,11 @@ const onSave = async () => {
         await fetchObjects();
         window.dispatchEvent(new CustomEvent("dangerous-objects-updated"));
       } else {
-        alert(res.data.message || "추가 실패");
+        await showCustomAlert(res.data.message || "추가 실패");
       }
     } catch (e) {
       console.error("추가 실패:", e);
-      alert("추가 실패");
+      await showCustomAlert("추가 실패");
     }
   };
 
