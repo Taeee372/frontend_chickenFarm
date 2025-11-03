@@ -384,7 +384,7 @@ class EnvSettingsManager:
     def load_settings_from_backend(self):
         """스프링 백엔드에서 설정을 가져옴"""
         try:
-            response = requests.get('http://192.168.30.152:8080/api/env-settings', timeout=5)
+            response = requests.get('http://192.168.30.111:8080/api/env-settings', timeout=5)
             
             if response.status_code == 200:
                 data = response.json()
@@ -1297,7 +1297,7 @@ class DynamicEnvMonitorSystem:
         self.config = EnvConfig()
         
         db_config = {
-            'host': '192.168.30.152',
+            'host': '192.168.30.111',
             'port': 3306,
             'user': 'rasberry',
             'password': 'mariadb',

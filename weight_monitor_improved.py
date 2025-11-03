@@ -435,7 +435,7 @@ class WeightMonitorSystem:
         self.state = WeightState()
         
         db_config = {
-            'host': '192.168.30.152',
+            'host': '192.168.30.111',
             'port': 3306,
             'user': 'rasberry',
             'password': 'mariadb',

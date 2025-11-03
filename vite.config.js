@@ -2,7 +2,8 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
 
-const BACKEND_IP = '192.168.30.95'
+const BACKEND_IP = '192.168.30.111'
+const PYTHON_IP = '192.168.30.240'
 
 // 환경 변수에서 포트 가져오기 (없으면 기본값 사용)
 const PORT = process.env.PORT || process.env.VITE_PORT || 5173
