@@ -2,11 +2,13 @@ import { useState } from 'react'
 import Input from '../common/Input'
 import Button from '../common/Button'
 import styles from './Login.module.css'
-import { useNavigate } from 'react-router-dom' 
+import { useNavigate } from 'react-router-dom'
 import { memberAPI } from '../services/api'
+import { useAlert } from '../context/AlertContext'
 
 const Login = () => {
   const nav = useNavigate();
+  const { showCustomAlert } = useAlert();
 
   const [loginDate, setLoginDate] = useState({
     'memId': '',
@@ -35,27 +37,27 @@ const Login = () => {
         sessionStorage.setItem('loginInfo', JSON.stringify(loginInfo));
 
         if (response.role === 'ADMIN') {
-          alert('환영합니다.');
+          await showCustomAlert('환영합니다.');
           nav('/home');
           setLoginDate({ 'memId': '', 'memPw': '' });
         }
       } else {
-        alert('ID 혹은 비밀번호가 잘못 입력되었습니다.');
+        await showCustomAlert('ID 혹은 비밀번호가 잘못 입력되었습니다.');
       }
     } catch (err) {
       console.error('로그인 오류:', err);
       if (err.response) {
         if (err.response.status === 401) {
-          alert('ID 혹은 비밀번호가 잘못 입력되었습니다.');
+          await showCustomAlert('ID 혹은 비밀번호가 잘못 입력되었습니다.');
         } else if (err.response.status === 404) {
-          alert('로그인 서비스를 찾을 수 없습니다. 서버 상태를 확인해주세요.');
+          await showCustomAlert('로그인 서비스를 찾을 수 없습니다. 서버 상태를 확인해주세요.');
         } else {
-          alert('로그인 중 오류가 발생했습니다.');
+          await showCustomAlert('로그인 중 오류가 발생했습니다.');
         }
       } else if (err.request) {
-        alert('서버에 연결할 수 없습니다. 네트워크를 확인해주세요.');
+        await showCustomAlert('서버에 연결할 수 없습니다. 네트워크를 확인해주세요.');
       } else {
-        alert('로그인 중 오류가 발생했습니다.');
+        await showCustomAlert('로그인 중 오류가 발생했습니다.');
       }
     }
   }

@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import styles from './ChickenInoculation.module.css'
 import { inoculationAPI, batchAPI } from '../services/api'
+import { useAlert } from '../context/AlertContext'
 
 const ChickenInoculation = () => {
   const navigate = useNavigate()
+  const { showCustomAlert } = useAlert()
 
   const [batches, setBatches] = useState([])
   const [selectedBatch, setSelectedBatch] = useState('')
@@ -175,7 +177,7 @@ const ChickenInoculation = () => {
 
   const handleMarkCompleted = async () => {
     if (selectedIds.length === 0) {
-      alert('접종할 개체를 선택해주세요.')
+      await showCustomAlert('접종할 개체를 선택해주세요.')
       return
     }
 
@@ -183,7 +185,7 @@ const ChickenInoculation = () => {
 
     try {
       setLoading(true)
-      
+
       // 실제 백엔드 연결 시도
       const inoculationData = {
         chickenIds: selectedIds,
@@ -193,14 +195,14 @@ const ChickenInoculation = () => {
         notes: `${selectedVaccine} 백신 접종 완료`,
         vaccinationDate: new Date().toISOString()
       }
-      
+
       console.log('백엔드 전송 데이터:', inoculationData)
-      
+
       await inoculationAPI.performBatchInoculation(inoculationData)
       await loadChickensByBatch(selectedBatch)
       setSelectedIds([])
-      alert('예방접종이 성공적으로 완료되었습니다.')
-      
+      await showCustomAlert('예방접종이 성공적으로 완료되었습니다.')
+
     } catch (err) {
       console.error('백엔드 연결 실패, 더미 데이터로 처리:', err)
       // 백엔드 연결 실패 시 더미 데이터로 처리
@@ -210,7 +212,7 @@ const ChickenInoculation = () => {
       console.log('업데이트된 닭 데이터:', updatedChickens)
       setChickens(updatedChickens)
       setSelectedIds([])
-      alert('예방접종이 성공적으로 완료되었습니다. (더미 데이터)')
+      await showCustomAlert('예방접종이 성공적으로 완료되었습니다. (더미 데이터)')
     } finally {
       setLoading(false)
     }
@@ -218,7 +220,7 @@ const ChickenInoculation = () => {
 
   const handleMarkPending = async () => {
     if (selectedIds.length === 0) {
-      alert('미완료 처리할 개체를 선택해주세요.')
+      await showCustomAlert('미완료 처리할 개체를 선택해주세요.')
       return
     }
 
@@ -226,20 +228,20 @@ const ChickenInoculation = () => {
 
     try {
       setLoading(true)
-      
+
       // 백엔드 API 호출
       const deleteData = {
         chickenIds: selectedIds,
         vaccineType: selectedVaccine
       }
-      
+
       console.log('백엔드 전송 데이터:', deleteData)
-      
+
       await inoculationAPI.deleteInoculation(deleteData)
       await loadChickensByBatch(selectedBatch)
       setSelectedIds([])
-      alert('예방접종 상태가 미완료로 변경되었습니다.')
-      
+      await showCustomAlert('예방접종 상태가 미완료로 변경되었습니다.')
+
     } catch (err) {
       console.error('백엔드 연결 실패, 더미 데이터로 처리:', err)
       // 백엔드 연결 실패 시 더미 데이터로 처리
@@ -249,7 +251,7 @@ const ChickenInoculation = () => {
       console.log('업데이트된 닭 데이터:', updatedChickens)
       setChickens(updatedChickens)
       setSelectedIds([])
-      alert('예방접종 상태가 미완료로 변경되었습니다. (더미 데이터)')
+      await showCustomAlert('예방접종 상태가 미완료로 변경되었습니다. (더미 데이터)')
     } finally {
       setLoading(false)
     }

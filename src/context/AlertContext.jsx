@@ -5,6 +5,8 @@ const AlertContext = createContext();
 
 export const AlertProvider = ({ children }) => {
   const [alerts, setAlerts] = useState([]);
+  const [customAlertDialog, setCustomAlertDialog] = useState(null); // 커스텀 alert 다이얼로그 상태
+  const [customConfirmDialog, setCustomConfirmDialog] = useState(null); // 커스텀 confirm 다이얼로그 상태
   const [alertSettings, setAlertSettings] = useState({
     tempHighAlert: 35,
     tempLowAlert: 10,
@@ -20,6 +22,36 @@ export const AlertProvider = ({ children }) => {
     manualLedThreshold: 300
   });
   const lastSavedAlertsRef = useRef([]); // useRef를 사용하여 불필요한 리렌더링 없이 이전 상태를 기억
+
+  // 커스텀 alert 함수 (위치 조정 가능)
+  const showCustomAlert = (message) => {
+    return new Promise((resolve) => {
+      setCustomAlertDialog({
+        message,
+        onClose: () => {
+          setCustomAlertDialog(null);
+          resolve();
+        }
+      });
+    });
+  };
+
+  // 커스텀 confirm 함수 (위치 조정 가능)
+  const showCustomConfirm = (message) => {
+    return new Promise((resolve) => {
+      setCustomConfirmDialog({
+        message,
+        onConfirm: () => {
+          setCustomConfirmDialog(null);
+          resolve(true);
+        },
+        onCancel: () => {
+          setCustomConfirmDialog(null);
+          resolve(false);
+        }
+      });
+    });
+  };
 
   // DB에 위험 알림 저장
   const saveDangerNotice = async (alertList) => {
@@ -161,8 +193,139 @@ export const AlertProvider = ({ children }) => {
   }, [alertSettings]); // alertSettings가 변경될 때마다 재실행
 
   return (
-    <AlertContext.Provider value={{ alerts, setAlerts }}>
+    <AlertContext.Provider value={{ alerts, setAlerts, showCustomAlert, showCustomConfirm }}>
       {children}
+      {/* 커스텀 alert 다이얼로그 */}
+      {customAlertDialog && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 10000
+        }}>
+          <div style={{
+            backgroundColor: '#fff',
+            borderRadius: '12px',
+            padding: '24px',
+            minWidth: '320px',
+            maxWidth: '500px',
+            boxShadow: '0 10px 40px rgba(0, 0, 0, 0.3)',
+            position: 'relative',
+            top: '-100px', // 이 값을 조정하면 alert의 위치가 변경됩니다 (양수: 아래로, 음수: 위로)
+          }}>
+            <div style={{
+              fontSize: '16px',
+              color: '#333',
+              marginBottom: '24px',
+              lineHeight: '1.5',
+              whiteSpace: 'pre-wrap'
+            }}>
+              {customAlertDialog.message}
+            </div>
+            <button
+              onClick={customAlertDialog.onClose}
+              style={{
+                width: '100%',
+                padding: '12px',
+                backgroundColor: '#3b82f6',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '15px',
+                fontWeight: '600',
+                cursor: 'pointer'
+              }}
+              onMouseOver={(e) => e.target.style.backgroundColor = '#2563eb'}
+              onMouseOut={(e) => e.target.style.backgroundColor = '#3b82f6'}
+            >
+              확인
+            </button>
+          </div>
+        </div>
+      )}
+      {/* 커스텀 confirm 다이얼로그 */}
+      {customConfirmDialog && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 10000
+        }}>
+          <div style={{
+            backgroundColor: '#fff',
+            borderRadius: '12px',
+            padding: '24px',
+            minWidth: '320px',
+            maxWidth: '500px',
+            boxShadow: '0 10px 40px rgba(0, 0, 0, 0.3)',
+            position: 'relative',
+            top: '100px', // 이 값을 조정하면 confirm의 위치가 변경됩니다 (양수: 아래로, 음수: 위로)
+          }}>
+            <div style={{
+              fontSize: '16px',
+              color: '#333',
+              marginBottom: '24px',
+              lineHeight: '1.5',
+              whiteSpace: 'pre-wrap'
+            }}>
+              {customConfirmDialog.message}
+            </div>
+            <div style={{
+              display: 'flex',
+              gap: '12px'
+            }}>
+              <button
+                onClick={customConfirmDialog.onCancel}
+                style={{
+                  flex: 1,
+                  padding: '12px',
+                  backgroundColor: '#6b7280',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontSize: '15px',
+                  fontWeight: '600',
+                  cursor: 'pointer'
+                }}
+                onMouseOver={(e) => e.target.style.backgroundColor = '#4b5563'}
+                onMouseOut={(e) => e.target.style.backgroundColor = '#6b7280'}
+              >
+                취소
+              </button>
+              <button
+                onClick={customConfirmDialog.onConfirm}
+                style={{
+                  flex: 1,
+                  padding: '12px',
+                  backgroundColor: '#3b82f6',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontSize: '15px',
+                  fontWeight: '600',
+                  cursor: 'pointer'
+                }}
+                onMouseOver={(e) => e.target.style.backgroundColor = '#2563eb'}
+                onMouseOut={(e) => e.target.style.backgroundColor = '#3b82f6'}
+              >
+                확인
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {/* 위험 알림 팝업 */}
       {alerts.length > 0 && (
         <div style={{
